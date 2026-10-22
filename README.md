@@ -14,7 +14,7 @@ A Streamlit application that recommends job listings from job descriptions and s
 
 ## Dataset
 
-Place `job_descriptions.csv` in the project root, next to `app.py`. The dataset is not included in this repository because it is large. Confirm that you have permission to use and redistribute your copy.
+Download `job_descriptions.csv` from the [Google Drive dataset folder](https://drive.google.com/drive/folders/1EdrQWOTa18f2dmPmS1JfoJdZjvOgNyx5), then place it in the project root, next to `app.py`. The dataset is not included in this repository because it is large. Confirm that you have permission to use and redistribute your copy.
 
 The current dataset contains **1,615,940 rows** and **147 unique job titles**. Work type counts are nearly balanced:
 
