@@ -12,19 +12,38 @@ def _top_counter_frame(counter: Counter, top_n: int, label: str) -> pd.DataFrame
     return pd.DataFrame(data, columns=[label, "count"])
 
 
-def _save_bar_chart(frame: pd.DataFrame, label: str, title: str, output_path: Path) -> None:
+def _save_bar_chart(
+    frame: pd.DataFrame,
+    label: str,
+    title: str,
+    output_path: Path,
+    total_count: int | None = None,
+) -> None:
     try:
         import matplotlib.pyplot as plt
     except ModuleNotFoundError:
         return
 
-    plt.figure(figsize=(10, 6))
-    plt.barh(frame[label][::-1], frame["count"][::-1], color="#1f77b4")
-    plt.title(title)
-    plt.xlabel("Count")
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=180)
-    plt.close()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    chart = frame.iloc[::-1]
+    bars = ax.barh(chart[label], chart["count"], color="#1f77b4")
+
+    if total_count:
+        labels = [
+            f"{count:,.0f} ({count / total_count:.1%})"
+            for count in chart["count"]
+        ]
+        ax.set_xlabel("Listings (count and share of dataset)")
+    else:
+        labels = [f"{count:,.0f}" for count in chart["count"]]
+        ax.set_xlabel("Listings")
+
+    ax.bar_label(bars, labels=labels, padding=4, fontsize=8)
+    ax.set_xlim(0, chart["count"].max() * 1.2)
+    ax.set_title(title)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=180)
+    plt.close(fig)
 
 
 def analyze_dataset(
@@ -95,6 +114,7 @@ def analyze_dataset(
         label="Work Type",
         title="Work Type Distribution",
         output_path=output_dir / "top_work_types.png",
+        total_count=row_count,
     )
 
     summary_lines = [

@@ -4,7 +4,7 @@
 
 In online job portals, users face a very large number of job listings and keyword search often returns many irrelevant results. A recommendation system helps reduce information overload by suggesting jobs that are similar to a job role or user skill profile.
 
-This project builds a **content-based job recommendation system** using the provided `job_descriptions.csv` dataset. The system does not depend on user ratings or click history, which makes it suitable for the cold-start condition described in the project brief.
+This project builds a **content-based job recommendation system** using the provided `job_descriptions.csv` dataset. The system does not depend on user ratings or click history, which makes it suitable for the cold-start condition described in the project brief. It provides a TF-IDF baseline and optional semantic and hybrid ranking modes.
 
 ## 2. Project Objectives
 
@@ -83,9 +83,9 @@ The system supports two inputs:
 1. Read the CSV in chunks.
 2. Create a balanced sample by keeping up to `400` rows per job title.
 3. Merge text fields into one feature string.
-4. Apply TF-IDF vectorization.
-5. Compute cosine similarity between the input representation and all job vectors.
-6. Return the top recommended jobs.
+4. Apply TF-IDF vectorization and, when enabled, sentence embedding encoding.
+5. Rank jobs with TF-IDF cosine similarity, semantic cosine similarity, or reciprocal-rank fusion of both rankings.
+6. Return the top recommended jobs and show lexical overlap terms as clues.
 
 ### 5.3 Output
 
@@ -101,44 +101,59 @@ The system supports two inputs:
 - Scikit-learn
 - Matplotlib
 - Streamlit
+- Sentence Transformers (optional semantic mode)
 
-## 7. Results and Observations
+## 7. Illustrative checks (not a measured evaluation)
+
+The examples below describe plausible outputs to inspect during a demo. They are not measured relevance results and should be replaced or confirmed by the human-review evaluation before presenting them as findings.
 
 ### Test Case 1
 
 - Input: `Data Analyst`
 - Output examples: `Business Analyst`
-- Observation: Recommendations stay close to analytics and business intelligence roles.
+- Expected behavior to review: recommendations should share analytics or business-intelligence skills and responsibilities.
 
 ### Test Case 2
 
 - Input: `Software Engineer`
 - Output examples: `Web Developer`
-- Observation: Recommendations move toward related software development roles based on shared technical text.
+- Expected behavior to review: recommendations should share software-development skills or responsibilities.
 
 ### Test Case 3
 
 - Input profile: `python sql dashboards statistics business intelligence`
 - Output examples: `Data Analyst`
-- Observation: Skill-based profile matching correctly surfaces analytics-oriented roles.
+- Expected behavior to review: analytics-oriented listings should rank well when their skills match the profile.
 
-## 8. Evaluation and Performance Thinking
+## 8. Evaluation plan
 
-This system is evaluated using logical relevance rather than rating prediction accuracy because the dataset has no explicit user feedback. The recommendations are meaningful when the text fields clearly describe the job domain, required skills, and responsibilities.
+The dataset has no relevance labels or user feedback, so recommendation quality has not yet been measured. The app provides a review CSV workflow: run a set of searches, download the ranked results, mark each result as relevant (`1`) or not relevant (`0`), combine the rows, and run `python evaluate_recommendations.py reviewed_results.csv --k 5`.
 
-The system performs well for:
+The script reports per-query Precision@5 and its mean. Precision@5 is the count of relevant jobs in the first five results divided by five. To compare methods, review results from the same queries independently for each method and report the mean for each method. Fill in actual review details and observed values below after completing the review; do not infer quality from similarity scores.
 
-- common job titles
-- roles with strong skill keywords
-- quick content-based exploration
+- Review date: pending
+- Number and type of queries: pending
+- Relevance criteria: pending
+- Dataset version: pending
+- TF-IDF mean Precision@5: pending
+- Semantic mean Precision@5: pending (after enabling semantic embeddings)
+- Hybrid mean Precision@5: pending (after enabling semantic embeddings)
+
+### Performance considerations
+
+The app scans the full CSV for analysis and builds its model from the balanced sample. Semantic encoding is optional because it adds a pretrained model download, extra build time, and embedding storage. The sample is capped to 400 listings per title, so recommendations do not cover every row.
+
+No measured performance claim is made until the human relevance review is completed.
 
 ## 9. Limitations
 
 - No personalization from user history
 - Exact job title input may fail if that title does not exist in the sampled data
 - Recommendation quality depends on text quality in the dataset
-- TF-IDF captures lexical similarity better than deep semantic similarity
+- TF-IDF is lexical and can miss related terms expressed differently; semantic embeddings can help but still require relevance evaluation
+- The training sample is limited to 400 listings per title
+- Human relevance review is required before making claims about recommendation quality
 
 ## 10. Conclusion
 
-The project successfully demonstrates a job recommendation system based on content-based filtering. By using TF-IDF and cosine similarity on job title, skills, and description-related features, the system can recommend relevant jobs without needing ratings or user interaction history. This makes it a strong and practical mini-project for demonstrating recommendation system concepts.
+The project demonstrates a modular content-based job retrieval system with a TF-IDF baseline and optional semantic and hybrid modes. Its practical value should be assessed with human-reviewed relevance judgments; the implementation's similarity scores alone do not establish recommendation quality.
