@@ -1,22 +1,23 @@
 # Job Recommendation System
 
-A Streamlit application that recommends job listings from job descriptions and skill profiles. The baseline uses TF-IDF and cosine similarity; optional semantic embeddings and hybrid ranking are also supported.
+A content-based job recommender built with Python and Streamlit. It recommends listings from a selected job title or a free-text skills profile. TF-IDF keyword matching is available by default; optional sentence embeddings enable semantic and hybrid ranking.
 
 ## Features
 
-- Find similar listings from a selected job title.
-- Match a free-text profile of skills, interests, or target roles.
-- Filter recommendations by country, work type, and experience range.
-- Compare keyword, semantic, and hybrid ranking when semantic embeddings are installed.
-- See shared keywords as clues for why a listing ranked highly.
-- Download ranked results for human relevance review.
-- Explore dataset counts and charts.
+- Find listings similar to a selected job title or skills profile.
+- Filter by country, work type, and the dataset's experience label using dropdowns.
+- Choose how many results to show; recommendations appear together in a sortable table.
+- Compare keyword (TF-IDF), semantic, and hybrid ranking when semantic support is installed.
+- View shared keyword clues and download recommendation results.
+- Explore dataset metrics and charts, including count labels on chart bars.
+
+Recommendation scores rank listings within the selected method. They are not probabilities or a guarantee that a job is suitable.
 
 ## Dataset
 
-Download `job_descriptions.csv` from the [Google Drive dataset folder](https://drive.google.com/drive/folders/1EdrQWOTa18f2dmPmS1JfoJdZjvOgNyx5), then place it in the project root, next to `app.py`. The dataset is not included in this repository because it is large. Confirm that you have permission to use and redistribute your copy.
+Download `job_descriptions.csv` from the [Google Drive dataset folder](https://drive.google.com/drive/folders/1EdrQWOTa18f2dmPmS1JfoJdZjvOgNyx5) and place it in the project root, next to `app.py`. The large dataset is not stored in this repository. Confirm that you have permission to use and redistribute your copy.
 
-The current dataset contains **1,615,940 rows** and **147 unique job titles**. Work type counts are nearly balanced:
+The dataset currently analyzed by this project contains **1,615,940 listings** and **147 unique job titles**. Its work types are close to evenly represented:
 
 | Work type | Listings | Share |
 |---|---:|---:|
@@ -26,21 +27,11 @@ The current dataset contains **1,615,940 rows** and **147 unique job titles**. W
 | Intern | 323,090 | 19.99% |
 | Full-Time | 322,236 | 19.94% |
 
-The current charts show counts directly on the bars. Run the analysis step below to regenerate charts and the dataset summary from your local CSV.
+These counts describe the current dataset copy. Running the analysis with your local CSV regenerates the charts and calculates its summary.
 
-## How recommendations work
+## Run locally on Windows
 
-1. The CSV is read in chunks. Reservoir sampling keeps up to 400 listings per job title, giving rows across the file a chance to be selected.
-2. Text fields are combined: job title, role, skills, description, responsibilities, qualifications, experience, and work type.
-3. The selected job text is converted to TF-IDF vectors. Similarity is ranked with cosine similarity.
-4. If enabled, a Sentence Transformers model also converts the job text and query into dense embeddings for semantic ranking.
-5. Hybrid mode combines the keyword and semantic result ranks with reciprocal-rank fusion.
-
-The sample cap helps control model size, but recommendations only come from sampled listings. Similarity scores are ranking signals, not probabilities or a measure of hiring suitability.
-
-## Setup on Windows
-
-Use Python 3.11 or newer. From PowerShell, open the project folder and create a virtual environment:
+Use Python 3.11 or newer. Open PowerShell in the project folder and create the virtual environment:
 
 ```powershell
 cd "C:\Users\Bhuvan\Desktop\jobrecommendation\Job-Recommendation-System"
@@ -49,73 +40,85 @@ py -3.11 -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-If PowerShell says script execution is disabled, use the virtual environment's Python without activating it:
+If PowerShell blocks activation, use the virtual environment's Python directly:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-## Build and run
-
-Build the baseline recommender and dataset analysis before starting the app:
+Build the dataset analysis and recommendation model, then start Streamlit:
 
 ```powershell
 python build_artifacts.py
 python -m streamlit run app.py
 ```
 
-The first build scans the large CSV and can take several minutes. Stop Streamlit with **Ctrl+C** in its terminal. The app can also build a baseline model automatically if a current model artifact is missing.
+Open the local URL printed in the terminal, usually <http://localhost:8501>. The initial build reads the large CSV in chunks and may take several minutes. The app also creates a baseline model automatically when a current artifact is missing. Stop it with **Ctrl+C** in the terminal.
 
-### Enable semantic and hybrid ranking
+## Run with Docker
 
-Semantic mode is optional. Its package and pretrained model files add installation, download, build-time, and storage costs. With the virtual environment active, run:
+Install and start Docker Desktop. Put `job_descriptions.csv` in the project root, then run:
+
+```powershell
+docker compose up --build
+```
+
+Open <http://localhost:8501>. The compose file mounts the dataset read-only and stores generated artifacts and charts in the local `artifacts` and `outputs` folders. Stop the running container with **Ctrl+C**, then remove it with:
+
+```powershell
+docker compose down
+```
+
+## Enable semantic and hybrid ranking
+
+Semantic support is optional. It installs Sentence Transformers and downloads a pretrained embedding model. With the virtual environment active, run:
 
 ```powershell
 python -m pip install -r requirements-semantic.txt
 python build_artifacts.py --semantic
+python -m streamlit run app.py
 ```
 
-Then restart Streamlit so it loads the new artifact. The recommendation method menu will include **Semantic embeddings** and **Hybrid (rank fusion)**. To rebuild a baseline-only artifact, run `python build_artifacts.py` without `--semantic`.
+The app's recommendation method menu will then include **Semantic embeddings** and **Hybrid (rank fusion)**. To rebuild a baseline-only model, run `python build_artifacts.py` without `--semantic`.
 
-If Windows Application Control blocks package installation, the app can still run in TF-IDF mode; ask your administrator to allow the installation before enabling semantic ranking.
-
-## Evaluate recommendation relevance
-
-The dataset has no user ratings or relevance labels, so recommendation quality needs human review.
-
-1. Run several title and skill-profile searches in the app.
-2. Download the review CSV for each search.
-3. Mark `relevant` as `1` when the job fits the query and `0` when it does not.
-4. Combine the reviewed rows into one CSV file.
-5. Calculate Precision@5:
+For a Docker image with semantic dependencies, run:
 
 ```powershell
-python evaluate_recommendations.py reviewed_results.csv --k 5
+$env:INSTALL_SEMANTIC = "true"
+docker compose build
+docker compose run --rm recommender python build_artifacts.py --semantic
+docker compose up
 ```
 
-Precision@5 is the number of relevant listings in the first five results divided by five. To compare methods, review results for the same queries with the same criteria. Record your query set, relevance criteria, dataset version, and actual scores below. Do not report results until the review is complete.
+The dataset, model artifacts, and charts are mounted from the project folder. If Windows Application Control blocks installation, TF-IDF mode remains available; semantic mode requires an administrator to allow the dependencies to be installed.
 
-**Evaluation status:** Pending human relevance review.
+## How recommendations work
+
+1. The CSV is read in chunks. Reservoir sampling selects up to 400 listings per job title across the file.
+2. The model combines job title, role, skills, description, responsibilities, qualifications, experience, and work type into text for each listing.
+3. TF-IDF represents words and two-word phrases as weighted features. Cosine similarity ranks listings by their text similarity to the selected title or profile.
+4. Semantic mode embeds listings and the query, then ranks them by embedding similarity.
+5. Hybrid mode combines the keyword and semantic rankings with reciprocal-rank fusion.
+
+The sample cap controls model size, so recommendations come only from the sampled listings. Semantic and hybrid methods are not available until semantic embeddings have been built.
 
 ## Project structure
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the data flow and a short presentation explanation.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the data flow and a short explanation suitable for a project presentation.
 
-| File | Responsibility |
+| File | Purpose |
 |---|---|
-| `app.py` | Streamlit interface and cached model loading |
-| `src/job_recommender/analysis.py` | Chunked dataset statistics, report, and charts |
-| `src/job_recommender/recommender.py` | Reservoir sampling, TF-IDF, ranking, and model artifacts |
-| `src/job_recommender/semantic.py` | Optional sentence embedding model |
-| `src/job_recommender/explanations.py` | Shared keyword clues for results |
-| `src/job_recommender/evaluation.py` | Review CSV creation and Precision@k calculations |
-| `build_artifacts.py` | Build dataset analysis and recommender artifacts |
-| `evaluate_recommendations.py` | Calculate metrics from reviewed CSV results |
+| `app.py` | Streamlit interface, dataset highlights, filters, and result tables |
+| `src/job_recommender/analysis.py` | Chunked dataset statistics and charts |
+| `src/job_recommender/recommender.py` | Sampling, TF-IDF ranking, and model artifacts |
+| `src/job_recommender/semantic.py` | Optional sentence embedding support |
+| `src/job_recommender/explanations.py` | Shared keyword clues for recommendations |
+| `build_artifacts.py` | Build the dataset analysis and recommendation model |
+| `Dockerfile`, `compose.yaml` | Build and run the app with Docker |
 
 ## Limitations
 
-- No recommendations are personalized from clicks, applications, or saved jobs.
-- TF-IDF favors shared wording; embeddings can help with related wording but still need evaluation.
-- The model only searches the sampled listings.
-- Similarity is not a probability or proof that a job is suitable.
-- Human-reviewed relevance results have not been collected yet.
+- Recommendations are not personalized from clicks, applications, or saved jobs.
+- TF-IDF favors shared wording; embeddings may match related wording when the dataset contains useful context.
+- Results are limited to sampled listings and the dataset's available fields.
+- Similarity scores are ranking signals, not probabilities or measures of hiring suitability.

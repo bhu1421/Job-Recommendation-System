@@ -43,4 +43,4 @@ Scores are for sorting within a method; they are not probabilities or a guarante
 
 > “The dataset contains job text but no user ratings, so I use content-based retrieval. I sample listings across the full CSV to keep the model manageable. The default TF-IDF method rewards shared skill terms; an optional embedding method can match related wording, and hybrid mode combines their rankings. The app shows the results and keyword clues. I evaluate recommendation relevance by having people label ranked results and calculating Precision@5.”
 
-Only claim evaluation results after completing the human review and recording the method, queries, criteria, and dataset version in `REPORT.md`.
+Only claim evaluation results after completing the human review and recording the method, queries, criteria, and dataset version in the evaluation table in `README.md`.

@@ -1,0 +1,15 @@
+services:
+  recommender:
+    build:
+      context: .
+      args:
+        INSTALL_SEMANTIC: ${INSTALL_SEMANTIC:-false}
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./job_descriptions.csv:/app/job_descriptions.csv:ro
+      - ./artifacts:/app/artifacts
+      - ./outputs:/app/outputs
+    environment:
+      STREAMLIT_SERVER_ADDRESS: 0.0.0.0
+      STREAMLIT_SERVER_PORT: 8501
