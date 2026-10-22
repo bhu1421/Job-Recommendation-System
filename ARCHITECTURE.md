@@ -27,7 +27,7 @@ chunked reader -> per-title reservoir sample -> combined job text
 - `semantic.py` optionally turns job text and user queries into dense vectors. It loads Sentence Transformers only when semantic matching is requested.
 - `explanations.py` finds shared words and phrases to provide lexical clues for a result. For semantic mode, these are clues, not a full explanation of the embedding model.
 - `evaluation.py` creates review sheets and calculates Precision@k from human relevance labels.
-- `app.py` connects the recommender to the Streamlit controls and displays results.
+- `app.py` connects the recommender to the Streamlit controls, applies country/work-type/experience preferences, and displays results.
 - `build_artifacts.py` rebuilds the model and dataset charts.
 - `evaluate_recommendations.py` summarizes a reviewed CSV from the app.
 

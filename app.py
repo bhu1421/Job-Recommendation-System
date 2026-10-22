@@ -136,11 +136,17 @@ st.caption(
 st.subheader("Find jobs similar to a title")
 countries = ["Any"] + sorted(recommender.jobs["Country"].dropna().unique().tolist())
 work_types = ["Any"] + sorted(recommender.jobs["Work Type"].dropna().unique().tolist())
+experience_ranges = ["Any"] + sorted(
+    recommender.jobs["Experience"].dropna().unique().tolist()
+)
 with st.form("title_search"):
     selected_title = st.selectbox("Job title", recommender.available_job_titles())
-    filter_columns = st.columns(2)
+    filter_columns = st.columns(3)
     selected_country = filter_columns[0].selectbox("Country", countries)
     selected_work_type = filter_columns[1].selectbox("Work type", work_types)
+    selected_experience = filter_columns[2].selectbox(
+        "Experience range", experience_ranges
+    )
     top_k = st.slider("Number of recommendations", min_value=3, max_value=10, value=5)
     title_submit = st.form_submit_button("Get recommendations", type="primary")
 
@@ -151,6 +157,7 @@ if title_submit:
             top_k=top_k,
             country=selected_country,
             work_type=selected_work_type,
+            experience=selected_experience,
             method=method,
         )
         if results.empty:
@@ -167,6 +174,16 @@ with st.form("profile_search"):
         value="Python SQL machine learning data visualization communication",
         height=120,
     )
+    profile_filter_columns = st.columns(3)
+    profile_country = profile_filter_columns[0].selectbox(
+        "Country preference", countries
+    )
+    profile_work_type = profile_filter_columns[1].selectbox(
+        "Work type preference", work_types
+    )
+    profile_experience = profile_filter_columns[2].selectbox(
+        "Experience range", experience_ranges
+    )
     profile_submit = st.form_submit_button("Match my profile")
 
 if profile_submit:
@@ -175,8 +192,16 @@ if profile_submit:
     else:
         try:
             results = recommender.recommend_for_profile(
-                profile_text, top_k=top_k, method=method
+                profile_text,
+                top_k=top_k,
+                method=method,
+                country=profile_country,
+                work_type=profile_work_type,
+                experience=profile_experience,
             )
-            show_results(results, profile_text, method, recommender, "profile")
+            if results.empty:
+                st.info("No jobs match those filters. Try broader preferences.")
+            else:
+                show_results(results, profile_text, method, recommender, "profile")
         except (ValueError, RuntimeError) as error:
             st.error(str(error))

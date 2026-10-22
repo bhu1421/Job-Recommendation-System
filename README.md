@@ -6,7 +6,7 @@ A Streamlit application that recommends job listings from job descriptions and s
 
 - Find similar listings from a selected job title.
 - Match a free-text profile of skills, interests, or target roles.
-- Filter title-based recommendations by country and work type.
+- Filter recommendations by country, work type, and experience range.
 - Compare keyword, semantic, and hybrid ranking when semantic embeddings are installed.
 - See shared keywords as clues for why a listing ranked highly.
 - Download ranked results for human relevance review.

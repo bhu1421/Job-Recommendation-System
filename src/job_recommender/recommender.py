@@ -203,6 +203,7 @@ class JobRecommendationSystem:
         exclude_mask: pd.Series | None = None,
         country: str | None = None,
         work_type: str | None = None,
+        experience: str | None = None,
     ) -> pd.DataFrame:
         results = self.jobs.copy()
         results["similarity_score"] = scores
@@ -212,6 +213,8 @@ class JobRecommendationSystem:
             results = results.loc[results["Country"] == country]
         if work_type and work_type != "Any":
             results = results.loc[results["Work Type"] == work_type]
+        if experience and experience != "Any":
+            results = results.loc[results["Experience"] == experience]
 
         columns = [
             "Job Id", "Job Title", "Role", "Company", "Country", "Work Type",
@@ -228,6 +231,7 @@ class JobRecommendationSystem:
         top_k: int = 5,
         country: str | None = None,
         work_type: str | None = None,
+        experience: str | None = None,
         method: str = "tfidf",
     ) -> pd.DataFrame:
         title_key = job_title.lower().strip()
@@ -265,14 +269,26 @@ class JobRecommendationSystem:
             semantic_scores = self.semantic_embeddings @ semantic_anchor
             scores = self._fuse_scores(tfidf_scores, semantic_scores, method)
         return self._result_frame(
-            scores, top_k, seed_mask, country, work_type
+            scores, top_k, seed_mask, country, work_type, experience
         )
 
     def recommend_for_profile(
-        self, profile_text: str, top_k: int = 5, method: str = "tfidf"
+        self,
+        profile_text: str,
+        top_k: int = 5,
+        method: str = "tfidf",
+        country: str | None = None,
+        work_type: str | None = None,
+        experience: str | None = None,
     ) -> pd.DataFrame:
         cleaned_profile = " ".join(profile_text.split()).strip().lower()
         if not cleaned_profile:
             raise ValueError("Profile text cannot be empty.")
 
-        return self._result_frame(self._score(cleaned_profile, method), top_k)
+        return self._result_frame(
+            self._score(cleaned_profile, method),
+            top_k,
+            country=country,
+            work_type=work_type,
+            experience=experience,
+        )
