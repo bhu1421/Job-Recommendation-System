@@ -57,13 +57,20 @@ Open the local URL printed in the terminal, usually <http://localhost:8501>. The
 
 ## Run with Docker
 
-Install and start Docker Desktop. Put `job_descriptions.csv` in the project root, then run:
+Install and start Docker Desktop. Put `job_descriptions.csv` in the project root, then run this command from the project folder:
 
 ```powershell
 docker compose up --build
 ```
 
-Open <http://localhost:8501>. The compose file mounts the dataset read-only and stores generated artifacts and charts in the local `artifacts` and `outputs` folders. Stop the running container with **Ctrl+C**, then remove it with:
+To build and run in separate steps instead:
+
+```powershell
+docker compose build
+docker compose up
+```
+
+This builds the image and starts the app in a container named `job-recommendation-system`. Open <http://localhost:8501>. The compose file mounts the dataset read-only and stores generated artifacts and charts in the local `artifacts` and `outputs` folders. Confirm the container is running with `docker ps`. Stop it with **Ctrl+C**, then remove it with:
 
 ```powershell
 docker compose down
