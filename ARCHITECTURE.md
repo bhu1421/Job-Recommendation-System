@@ -3,7 +3,7 @@
 ## Data flow
 
 ```text
-job_descriptions.csv
+Kaggle dataset (cached as job_descriptions.csv)
         |
         v
 chunked reader -> per-title reservoir sample -> combined job text
@@ -23,6 +23,7 @@ chunked reader -> per-title reservoir sample -> combined job text
 ## Code map
 
 - `analysis.py` reads the large CSV in chunks and creates dataset statistics and charts.
+- `dataset.py` uses a local CSV when present and otherwise downloads the public Kaggle CSV into the configured cache directory.
 - `recommender.py` samples jobs, builds the TF-IDF matrix, stores artifacts, and ranks results.
 - `semantic.py` turns job text and user queries into dense vectors for semantic and hybrid ranking.
 - `explanations.py` finds shared words and phrases to provide lexical clues for a result. For semantic mode, these are clues, not a full explanation of the embedding model.
@@ -30,6 +31,8 @@ chunked reader -> per-title reservoir sample -> combined job text
 - `app.py` connects the recommender to the Streamlit controls, applies country/work-type/experience preferences, and displays results.
 - `build_artifacts.py` rebuilds the model and dataset charts.
 - `evaluate_recommendations.py` summarizes a reviewed CSV from the app.
+
+The app does not need the full CSV in Git or in the Docker image. Docker Compose stores the Kaggle download in the persistent `job_dataset_cache` volume. The prebuilt model is loaded independently of the CSV's file timestamp, so a deployment does not retrain it just because the dataset was downloaded again.
 
 ## Explain the three ranking methods
 

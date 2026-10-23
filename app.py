@@ -12,24 +12,23 @@ from src.job_recommender import (
     analyze_dataset,
     make_review_sheet,
 )
+from src.job_recommender.dataset import resolve_dataset_path
 from src.job_recommender.semantic import DEFAULT_SEMANTIC_MODEL
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-DATA_PATH = PROJECT_ROOT / "job_descriptions.csv"
 MODEL_PATH = PROJECT_ROOT / "job_recommender.joblib"
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
 ANALYSIS_VERSION = 2
 
 
-@st.cache_resource(show_spinner=False, max_entries=2)
-def load_recommender(signature: tuple[int, int]) -> JobRecommendationSystem:
-    """Reuse a model only when it was built from the current dataset."""
+@st.cache_resource(show_spinner=False)
+def load_recommender() -> JobRecommendationSystem:
+    """Load the shipped model; rebuild only when it is missing or incompatible."""
     if MODEL_PATH.exists():
         saved = JobRecommendationSystem.load(MODEL_PATH)
         if (
             getattr(saved, "artifact_version", None) == 3
-            and getattr(saved, "source_signature", None) == signature
             and saved.semantic_available
         ):
             return saved
@@ -77,10 +76,11 @@ st.caption(
     "Explore similar job listings with keyword matching, semantic embeddings, or both."
 )
 
-if not DATA_PATH.exists():
-    st.error(
-        "Dataset not found. Place `job_descriptions.csv` next to `app.py`, then restart the app."
-    )
+try:
+    with st.spinner("Checking for the job dataset; downloading it from Kaggle if needed."):
+        DATA_PATH = resolve_dataset_path(PROJECT_ROOT)
+except Exception as error:
+    st.error(f"Could not prepare the job dataset: {error}")
     st.stop()
 
 data_stat = DATA_PATH.stat()
@@ -88,7 +88,7 @@ data_signature = (data_stat.st_size, data_stat.st_mtime_ns)
 
 with st.spinner("Loading dataset analysis and recommender. The first load can take a while."):
     analysis = load_analysis(data_signature, ANALYSIS_VERSION)
-    recommender = load_recommender(data_signature)
+    recommender = load_recommender()
 
 metric_columns = st.columns(4)
 metric_columns[0].metric("Total jobs", f"{analysis['row_count']:,}")

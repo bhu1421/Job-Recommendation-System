@@ -23,7 +23,9 @@ RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTr
 
 COPY app.py build_artifacts.py evaluate_recommendations.py ./
 COPY src ./src
-COPY job_recommender.joblib job_descriptions.csv ./
+COPY job_recommender.joblib ./
+ENV JOB_DATA_DIR=/data
+RUN mkdir -p /data
 
 EXPOSE 8501
 

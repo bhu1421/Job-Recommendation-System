@@ -6,8 +6,13 @@ services:
       - "8501:8501"
     volumes:
       - ./job_recommender.joblib:/app/job_recommender.joblib:ro
-      - ./job_descriptions.csv:/app/job_descriptions.csv:ro
       - ./outputs:/app/outputs
+      - job_dataset_cache:/data
     environment:
       STREAMLIT_SERVER_ADDRESS: 0.0.0.0
       STREAMLIT_SERVER_PORT: 8501
+      JOB_DATA_DIR: /data
+      KAGGLE_API_TOKEN: ${KAGGLE_API_TOKEN:-}
+
+volumes:
+  job_dataset_cache:

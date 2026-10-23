@@ -5,5 +5,7 @@ __pycache__/
 **/__pycache__/
 *.py[cod]
 outputs/
+.dataset_cache/
+job_descriptions.csv
 .env
 .streamlit/secrets.toml

@@ -9,6 +9,7 @@ venv/
 job_descriptions.csv
 artifacts/
 outputs/
+.dataset_cache/
 
 .streamlit/
 .git_backup_precleanup/

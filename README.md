@@ -15,7 +15,7 @@ Recommendation scores rank listings within the selected method. They are not pro
 
 ## Dataset
 
-Download `job_descriptions.csv` from the [Google Drive dataset folder](https://drive.google.com/drive/folders/1EdrQWOTa18f2dmPmS1JfoJdZjvOgNyx5) and place it in the project root, next to `app.py`. The large dataset is not stored in this repository. Confirm that you have permission to use and redistribute your copy.
+The app obtains `job_descriptions.csv` from the public [Kaggle job description dataset](https://www.kaggle.com/datasets/ravindrasinghrana/job-description-dataset?select=job_descriptions.csv) on first run. The CSV is cached locally in `.dataset_cache/` (or in the directory set by `JOB_DATA_DIR`) and is not stored in this repository or Docker image. You can also place your own `job_descriptions.csv` in the project root; that local file takes precedence. If Kaggle requires authentication, set `KAGGLE_API_TOKEN` as a deployment secret. Check the dataset's license and terms before redistribution.
 
 The dataset currently analyzed by this project contains **1,615,940 listings** and **147 unique job titles**. Its work types are close to evenly represented:
 
@@ -53,24 +53,24 @@ python build_artifacts.py
 python -m streamlit run app.py
 ```
 
-Open the local URL printed in the terminal, usually <http://localhost:8501>. The initial build reads the large CSV in chunks and creates semantic embeddings, so it may take several minutes and downloads the pretrained embedding model. The app also creates a model with all three ranking methods automatically when a current compatible model is missing. Stop it with **Ctrl+C** in the terminal.
+Open the local URL printed in the terminal, usually <http://localhost:8501>. If the CSV is absent, the app downloads it from Kaggle. The initial build reads the large CSV in chunks and creates semantic embeddings, so it may take several minutes and downloads the pretrained embedding model. The app also creates a model with all three ranking methods automatically when a compatible model is missing. Stop it with **Ctrl+C** in the terminal.
 
 ## Run with Docker
 
-Install and start Docker Desktop. Put `job_descriptions.csv` in the project root, then run this command from the project folder:
+Install and start Docker Desktop, then run this command from the project folder:
 
 ```powershell
 docker compose up --build
 ```
 
 
-This builds the image and starts the app in a container named `job-recommendation-system`. The root-level model and dataset are included in the image and mounted read-only from the project folder; charts are stored in the local `outputs` folder. Open <http://localhost:8501>. Confirm the container is running with `docker ps`. Stop it with **Ctrl+C**, then remove it with:
+This builds the image and starts the app in a container named `job-recommendation-system`. The model is included in the image; the dataset downloads from Kaggle on first startup and is kept in the persistent `job_dataset_cache` Docker volume. Charts are stored in the local `outputs` folder. Open <http://localhost:8501>. Confirm the container is running with `docker ps`. Stop it with **Ctrl+C**, then remove the container with:
 
 ```powershell
 docker compose down
 ```
 
-The three recommendation methods are always available. The first semantic model build downloads `sentence-transformers/all-MiniLM-L6-v2`; Docker installs CPU-only PyTorch and Sentence Transformers by default. The dataset and root-level model are mounted from the project folder, and charts are written to `outputs`.
+The three recommendation methods are always available. The first semantic model build downloads `sentence-transformers/all-MiniLM-L6-v2`; Docker installs CPU-only PyTorch and Sentence Transformers by default. The app loads the checked-in model without rebuilding it just because the downloaded dataset has a different file timestamp. If Kaggle requires authentication, provide `KAGGLE_API_TOKEN` to the container through an environment variable or an untracked `.env` file; never commit the token.
 
 ## How recommendations work
 
