@@ -2,6 +2,10 @@
 
 A content-based job recommender built with Python and Streamlit. It recommends listings from a selected job title or a free-text skills profile, with keyword (TF-IDF), semantic embedding, and hybrid ranking methods available.
 
+## Live demo
+
+[Open the deployed app](https://job-recommendation-system-1-jljt.onrender.com/)
+
 ## Features
 
 - Find listings similar to a selected job title or skills profile.
