@@ -1,2 +1,0 @@
-# Install after requirements.txt to enable dense semantic embeddings.
-sentence-transformers>=5.0
