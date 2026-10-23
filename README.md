@@ -1,13 +1,13 @@
 # Job Recommendation System
 
-A content-based job recommender built with Python and Streamlit. It recommends listings from a selected job title or a free-text skills profile. TF-IDF keyword matching is available by default; optional sentence embeddings enable semantic and hybrid ranking.
+A content-based job recommender built with Python and Streamlit. It recommends listings from a selected job title or a free-text skills profile, with keyword (TF-IDF), semantic embedding, and hybrid ranking methods available.
 
 ## Features
 
 - Find listings similar to a selected job title or skills profile.
 - Filter by country, work type, and the dataset's experience label using dropdowns.
 - Choose how many results to show; recommendations appear together in a sortable table.
-- Compare keyword (TF-IDF), semantic, and hybrid ranking when semantic support is installed.
+- Compare keyword (TF-IDF), semantic, and hybrid ranking.
 - View shared keyword clues and download recommendation results.
 - Explore dataset metrics and charts, including count labels on chart bars.
 
@@ -53,7 +53,7 @@ python build_artifacts.py
 python -m streamlit run app.py
 ```
 
-Open the local URL printed in the terminal, usually <http://localhost:8501>. The initial build reads the large CSV in chunks and may take several minutes. The app also creates a baseline model automatically when a current artifact is missing. Stop it with **Ctrl+C** in the terminal.
+Open the local URL printed in the terminal, usually <http://localhost:8501>. The initial build reads the large CSV in chunks and creates semantic embeddings, so it may take several minutes and downloads the pretrained embedding model. The app also creates a model with all three ranking methods automatically when a current compatible model is missing. Stop it with **Ctrl+C** in the terminal.
 
 ## Run with Docker
 
@@ -63,41 +63,14 @@ Install and start Docker Desktop. Put `job_descriptions.csv` in the project root
 docker compose up --build
 ```
 
-To build and run in separate steps instead:
 
-```powershell
-docker compose build
-docker compose up
-```
-
-This builds the image and starts the app in a container named `job-recommendation-system`. Open <http://localhost:8501>. The compose file mounts the dataset read-only and stores generated artifacts and charts in the local `artifacts` and `outputs` folders. Confirm the container is running with `docker ps`. Stop it with **Ctrl+C**, then remove it with:
+This builds the image and starts the app in a container named `job-recommendation-system`. The root-level model and dataset are included in the image and mounted read-only from the project folder; charts are stored in the local `outputs` folder. Open <http://localhost:8501>. Confirm the container is running with `docker ps`. Stop it with **Ctrl+C**, then remove it with:
 
 ```powershell
 docker compose down
 ```
 
-## Enable semantic and hybrid ranking
-
-Semantic support is optional. It installs Sentence Transformers and downloads a pretrained embedding model. With the virtual environment active, run:
-
-```powershell
-python -m pip install -r requirements-semantic.txt
-python build_artifacts.py --semantic
-python -m streamlit run app.py
-```
-
-The app's recommendation method menu will then include **Semantic embeddings** and **Hybrid (rank fusion)**. To rebuild a baseline-only model, run `python build_artifacts.py` without `--semantic`.
-
-For a Docker image with semantic dependencies, run:
-
-```powershell
-$env:INSTALL_SEMANTIC = "true"
-docker compose build
-docker compose run --rm recommender python build_artifacts.py --semantic
-docker compose up
-```
-
-The dataset, model artifacts, and charts are mounted from the project folder. If Windows Application Control blocks installation, TF-IDF mode remains available; semantic mode requires an administrator to allow the dependencies to be installed.
+The three recommendation methods are always available. The first semantic model build downloads `sentence-transformers/all-MiniLM-L6-v2`; Docker installs CPU-only PyTorch and Sentence Transformers by default. The dataset and root-level model are mounted from the project folder, and charts are written to `outputs`.
 
 ## How recommendations work
 
@@ -107,7 +80,7 @@ The dataset, model artifacts, and charts are mounted from the project folder. If
 4. Semantic mode embeds listings and the query, then ranks them by embedding similarity.
 5. Hybrid mode combines the keyword and semantic rankings with reciprocal-rank fusion.
 
-The sample cap controls model size, so recommendations come only from the sampled listings. Semantic and hybrid methods are not available until semantic embeddings have been built.
+The sample cap controls model size, so recommendations come only from the sampled listings. The model stores embeddings for those sampled listings so semantic and hybrid methods are ready alongside TF-IDF.
 
 ## Project structure
 
@@ -118,7 +91,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the data flow and a short explanation
 | `app.py` | Streamlit interface, dataset highlights, filters, and result tables |
 | `src/job_recommender/analysis.py` | Chunked dataset statistics and charts |
 | `src/job_recommender/recommender.py` | Sampling, TF-IDF ranking, and model artifacts |
-| `src/job_recommender/semantic.py` | Optional sentence embedding support |
+| `src/job_recommender/semantic.py` | Sentence embedding support |
 | `src/job_recommender/explanations.py` | Shared keyword clues for recommendations |
 | `build_artifacts.py` | Build the dataset analysis and recommendation model |
 | `Dockerfile`, `compose.yaml` | Build and run the app with Docker |

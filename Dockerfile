@@ -11,16 +11,19 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt requirements-semantic.txt ./
+COPY requirements.txt ./
 
-ARG INSTALL_SEMANTIC=false
-RUN python -m pip install --no-cache-dir -r requirements.txt \
-    && if [ "$INSTALL_SEMANTIC" = "true" ]; then \
-        python -m pip install --no-cache-dir -r requirements-semantic.txt; \
-    fi
+RUN grep -v '^sentence-transformers' requirements.txt > /tmp/requirements-base.txt \
+    && python -m pip install --no-cache-dir -r /tmp/requirements-base.txt \
+    && python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch \
+    && python -m pip install --no-cache-dir 'sentence-transformers>=5.0'
+
+ENV HF_HOME=/opt/huggingface
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
 
 COPY app.py build_artifacts.py evaluate_recommendations.py ./
 COPY src ./src
+COPY job_recommender.joblib job_descriptions.csv ./
 
 EXPOSE 8501
 

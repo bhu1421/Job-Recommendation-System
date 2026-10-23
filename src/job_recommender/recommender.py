@@ -169,7 +169,7 @@ class JobRecommendationSystem:
 
         if not self.semantic_available:
             raise ValueError(
-                "Semantic embeddings are not in this model. Rebuild artifacts with --semantic."
+                "Semantic embeddings are not in this model. Rebuild it with python build_artifacts.py."
             )
 
         from .semantic import encode_texts
@@ -262,7 +262,7 @@ class JobRecommendationSystem:
         else:
             if not self.semantic_available:
                 raise ValueError(
-                    "Semantic embeddings are not in this model. Rebuild artifacts with --semantic."
+                    "Semantic embeddings are not in this model. Rebuild it with python build_artifacts.py."
                 )
             semantic_anchor = self.semantic_embeddings[seed_mask_array].mean(axis=0)
             semantic_anchor /= np.linalg.norm(semantic_anchor)

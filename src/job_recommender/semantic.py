@@ -1,4 +1,4 @@
-"""Optional dense embeddings used for meaning-based job matching."""
+"""Dense embeddings used for meaning-based job matching."""
 
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ def _load_model(model_name: str):
         from sentence_transformers import SentenceTransformer
     except ImportError as error:
         raise RuntimeError(
-            "Semantic matching requires the optional dependency. Install "
-            "requirements-semantic.txt and rebuild with --semantic."
+            "Semantic matching requires sentence-transformers. Install the "
+            "project requirements and rebuild the recommender model."
         ) from error
     return SentenceTransformer(model_name)
 
@@ -24,10 +24,10 @@ def _load_model(model_name: str):
 def encode_texts(
     texts: list[str],
     model_name: str,
-    batch_size: int = 64,
+    batch_size: int = 256,
     show_progress_bar: bool = False,
 ) -> np.ndarray:
-    """Encode text as normalized vectors; requires the optional package."""
+    """Encode text as normalized vectors using Sentence Transformers."""
     model = _load_model(model_name)
     vectors = model.encode(
         texts,

@@ -4,8 +4,6 @@ venv/
 __pycache__/
 **/__pycache__/
 *.py[cod]
-job_descriptions.csv
-artifacts/
 outputs/
 .env
 .streamlit/secrets.toml

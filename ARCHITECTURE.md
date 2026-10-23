@@ -9,7 +9,7 @@ job_descriptions.csv
 chunked reader -> per-title reservoir sample -> combined job text
                                            |                    |
                                            v                    v
-                                       TF-IDF             optional embeddings
+                                       TF-IDF             semantic embeddings
                                            \                    /
                                             ranked listings
                                                   |
@@ -24,7 +24,7 @@ chunked reader -> per-title reservoir sample -> combined job text
 
 - `analysis.py` reads the large CSV in chunks and creates dataset statistics and charts.
 - `recommender.py` samples jobs, builds the TF-IDF matrix, stores artifacts, and ranks results.
-- `semantic.py` optionally turns job text and user queries into dense vectors. It loads Sentence Transformers only when semantic matching is requested.
+- `semantic.py` turns job text and user queries into dense vectors for semantic and hybrid ranking.
 - `explanations.py` finds shared words and phrases to provide lexical clues for a result. For semantic mode, these are clues, not a full explanation of the embedding model.
 - `evaluation.py` creates review sheets and calculates Precision@k from human relevance labels.
 - `app.py` connects the recommender to the Streamlit controls, applies country/work-type/experience preferences, and displays results.
@@ -41,6 +41,6 @@ Scores are for sorting within a method; they are not probabilities or a guarante
 
 ## Short presentation explanation
 
-> “The dataset contains job text but no user ratings, so I use content-based retrieval. I sample listings across the full CSV to keep the model manageable. The default TF-IDF method rewards shared skill terms; an optional embedding method can match related wording, and hybrid mode combines their rankings. The app shows the results and keyword clues. I evaluate recommendation relevance by having people label ranked results and calculating Precision@5.”
+> “The dataset contains job text but no user ratings, so I use content-based retrieval. I sample listings across the full CSV to keep the model manageable. TF-IDF rewards shared skill terms, semantic embeddings can match related wording, and hybrid mode combines their rankings. The app shows the results and keyword clues. I evaluate recommendation relevance by having people label ranked results and calculating Precision@5.”
 
 Only claim evaluation results after completing the human review and recording the method, queries, criteria, and dataset version in the evaluation table in `README.md`.

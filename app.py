@@ -12,12 +12,12 @@ from src.job_recommender import (
     analyze_dataset,
     make_review_sheet,
 )
+from src.job_recommender.semantic import DEFAULT_SEMANTIC_MODEL
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 DATA_PATH = PROJECT_ROOT / "job_descriptions.csv"
-ARTIFACT_DIR = PROJECT_ROOT / "artifacts"
-MODEL_PATH = ARTIFACT_DIR / "job_recommender.joblib"
+MODEL_PATH = PROJECT_ROOT / "job_recommender.joblib"
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
 ANALYSIS_VERSION = 2
 
@@ -30,10 +30,15 @@ def load_recommender(signature: tuple[int, int]) -> JobRecommendationSystem:
         if (
             getattr(saved, "artifact_version", None) == 3
             and getattr(saved, "source_signature", None) == signature
+            and saved.semantic_available
         ):
             return saved
 
-    recommender = JobRecommendationSystem.from_csv(DATA_PATH, max_rows_per_title=400)
+    recommender = JobRecommendationSystem.from_csv(
+        DATA_PATH,
+        max_rows_per_title=400,
+        semantic_model_name=DEFAULT_SEMANTIC_MODEL,
+    )
     recommender.save(MODEL_PATH)
     return recommender
 
@@ -114,15 +119,11 @@ with st.expander("Dataset highlights"):
             f"{highest:,} ({highest / analysis['row_count']:.1%}) of all listings."
         )
 
-methods = {"Keyword (TF-IDF)": "tfidf"}
-if recommender.semantic_available:
-    methods["Semantic embeddings"] = "semantic"
-    methods["Hybrid (rank fusion)"] = "hybrid"
-elif st.button("How to enable semantic matching"):
-    st.info(
-        "Install `requirements-semantic.txt`, then run "
-        "`python build_artifacts.py --semantic` to build semantic embeddings."
-    )
+methods = {
+    "Keyword (TF-IDF)": "tfidf",
+    "Semantic embeddings": "semantic",
+    "Hybrid (rank fusion)": "hybrid",
+}
 
 method_label = st.selectbox("Recommendation method", list(methods))
 method = methods[method_label]

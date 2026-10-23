@@ -1,15 +1,12 @@
 services:
   recommender:
     container_name: job-recommendation-system
-    build:
-      context: .
-      args:
-        INSTALL_SEMANTIC: ${INSTALL_SEMANTIC:-false}
+    build: .
     ports:
       - "8501:8501"
     volumes:
+      - ./job_recommender.joblib:/app/job_recommender.joblib:ro
       - ./job_descriptions.csv:/app/job_descriptions.csv:ro
-      - ./artifacts:/app/artifacts
       - ./outputs:/app/outputs
     environment:
       STREAMLIT_SERVER_ADDRESS: 0.0.0.0
